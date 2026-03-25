@@ -1,0 +1,97 @@
+{
+  "name": "গাজী অনলাইন",
+  "short_name": "Gazi Online",
+  "description": "ডিজিটাল সার্ভিস ও অনলাইন ইউটিলিটি সেন্টার",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#38bdf8",
+  "lang": "bn",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "হোম পেজ"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "নতুন বুকিং",
+      "short_name": "বুকিং",
+      "description": "নতুন সার্ভিস বুক করুন",
+      "url": "/#book",
+      "icons": [{ "src": "/icons/shortcut-book.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "বুকিং ট্র্যাক",
+      "short_name": "ট্র্যাক",
+      "description": "আপনার বুকিং ট্র্যাক করুন",
+      "url": "/#track",
+      "icons": [{ "src": "/icons/shortcut-track.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=in.gazidevs.app",
+      "id": "in.gazidevs.app"
+    }
+  ],
+  "prefer_related_applications": false
+}
