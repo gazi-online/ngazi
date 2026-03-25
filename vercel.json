@@ -9,6 +9,10 @@
   ],
   "routes": [
     {
+      "src": "/robots.txt",
+      "dest": "/frontend/robots.txt"
+    },
+    {
       "src": "/(.*)",
       "dest": "/frontend/index.html"
     }
