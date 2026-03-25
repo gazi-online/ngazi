@@ -700,9 +700,10 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <div class="wizard-wrap">
       <div class="wizard-steps" id="wizSteps">
         <div class="wizard-step active" id="ws-1"><div class="wdot">১</div><div class="wlbl" data-bn="তথ্য" data-en="Info">তথ্য</div></div>
-        <div class="wizard-step" id="ws-2"><div class="wdot">২</div><div class="wlbl" data-bn="ডকুমেন্ট" data-en="Docs">ডকুমেন্ট</div></div>
-        <div class="wizard-step" id="ws-3"><div class="wdot">৩</div><div class="wlbl" data-bn="পেমেন্ট" data-en="Payment">পেমেন্ট</div></div>
-        <div class="wizard-step" id="ws-4"><div class="wdot">৪</div><div class="wlbl" data-bn="সম্পন্ন" data-en="Done">সম্পন্ন</div></div>
+        <div class="wizard-step" id="ws-2"><div class="wdot">২</div><div class="wlbl" data-bn="OTP" data-en="OTP">OTP</div></div>
+        <div class="wizard-step" id="ws-3"><div class="wdot">৩</div><div class="wlbl" data-bn="ডকুমেন্ট" data-en="Docs">ডকুমেন্ট</div></div>
+        <div class="wizard-step" id="ws-4"><div class="wdot">৪</div><div class="wlbl" data-bn="পেমেন্ট" data-en="Payment">পেমেন্ট</div></div>
+        <div class="wizard-step" id="ws-5"><div class="wdot">৫</div><div class="wlbl" data-bn="সম্পন্ন" data-en="Done">সম্পন্ন</div></div>
       </div>
       <!-- Step 1 -->
       <div class="wpanel active" id="wp-1">
@@ -728,40 +729,45 @@ tr:hover td{background:rgba(255,255,255,.015)}
             <option value="form-fillup" data-bn="অনলাইন ফর্ম ফিলআপ" data-en="Online Form Fillup">অনলাইন ফর্ম ফিলআপ</option>
           </select>
         </div>
-        <div class="fr">
-          <div class="fg"><label class="fl"><span data-bn="তারিখ" data-en="Date">তারিখ</span> <span class="req">*</span></label><input type="date" class="fi" id="bkDate"></div>
-          <div class="fg">
-            <label class="fl"><span data-bn="সময়" data-en="Time">সময়</span> <span class="req">*</span></label>
-            <select class="fs" id="bkTime">
-              <option value="" data-bn="-- সময় বেছে নিন --" data-en="-- Select Time --">-- সময় বেছে নিন --</option>
-              <option value="10:00" data-bn="সকাল ১০:০০" data-en="10:00 AM">সকাল ১০:০০</option>
-              <option value="11:00" data-bn="সকাল ১১:০০" data-en="11:00 AM">সকাল ১১:০০</option>
-              <option value="12:00" data-bn="দুপুর ১২:০০" data-en="12:00 PM">দুপুর ১২:০০</option>
-              <option value="14:00" data-bn="দুপুর ২:০০" data-en="2:00 PM">দুপুর ২:০০</option>
-              <option value="15:00" data-bn="বিকেল ৩:০০" data-en="3:00 PM">বিকেল ৩:০০</option>
-              <option value="16:00" data-bn="বিকেল ৪:০০" data-en="4:00 PM">বিকেল ৪:০০</option>
-              <option value="17:00" data-bn="বিকেল ৫:০০" data-en="5:00 PM">বিকেল ৫:০০</option>
-            </select>
-          </div>
-        </div>
         <button class="btn-p btn-full" onclick="nextStep(1)"><span data-bn="পরবর্তী ধাপ →" data-en="Next Step →">পরবর্তী ধাপ →</span></button>
       </div>
-      <!-- Step 2 -->
+      <!-- Step 2: OTP Verification -->
       <div class="wpanel" id="wp-2">
-        <h3 style="font-family:var(--fe);font-size:16px;font-weight:700;margin-bottom:6px" data-bn="ডকুমেন্ট আপলোড" data-en="Document Upload">ডকুমেন্ট আপলোড</h3>
-        <p style="font-size:13px;color:var(--txt2);margin-bottom:18px" data-bn="প্রয়োজনীয় কাগজপত্র আপলোড করুন (JPG, PNG, PDF — সর্বোচ্চ ৫MB)" data-en="Upload required documents (JPG, PNG, PDF — max 5MB)">প্রয়োজনীয় কাগজপত্র আপলোড করুন</p>
-        <div id="docFields"></div>
+        <h3 style="font-family:var(--fe);font-size:16px;font-weight:700;margin-bottom:6px" data-bn="WhatsApp OTP যাচাই" data-en="WhatsApp OTP Verification">WhatsApp OTP যাচাই</h3>
+        <p style="font-size:13px;color:var(--txt2);margin-bottom:18px" data-bn="আপনার WhatsApp নম্বরে একটি OTP পাঠানো হবে" data-en="An OTP will be sent to your WhatsApp number">আপনার WhatsApp নম্বরে একটি OTP পাঠানো হবে</p>
+        <div class="fg" style="margin-bottom:14px">
+          <label class="fl" data-bn="WhatsApp নম্বর" data-en="WhatsApp Number">WhatsApp নম্বর</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="tel" class="fi" id="otpPhone" placeholder="01XXXXXXXXX" style="flex:1" readonly>
+            <button class="btn-g" id="sendOtpBtn" onclick="sendOTP()" style="white-space:nowrap"><span data-bn="OTP পাঠান" data-en="Send OTP">OTP পাঠান</span></button>
+          </div>
+        </div>
+        <div class="fg" id="otpInputWrap" style="display:none">
+          <label class="fl"><span data-bn="OTP কোড" data-en="OTP Code">OTP কোড</span> <span class="req">*</span></label>
+          <input type="text" class="fi" id="otpInput" maxlength="6" placeholder="6-digit OTP" style="letter-spacing:.2em;font-family:var(--fm);font-size:18px;text-align:center">
+          <p style="font-size:11px;color:var(--txt3);margin-top:5px" id="otpTimer"></p>
+        </div>
         <div style="display:flex;gap:10px;margin-top:18px">
           <button class="btn-g" onclick="prevStep(2)"><span data-bn="← পেছনে" data-en="← Back">← পেছনে</span></button>
-          <button class="btn-p" style="flex:1" onclick="nextStep(2)"><span data-bn="পেমেন্টে যান →" data-en="Go to Payment →">পেমেন্টে যান →</span></button>
+          <button class="btn-p" style="flex:1" onclick="verifyOTP()"><span data-bn="যাচাই করুন →" data-en="Verify →">যাচাই করুন →</span></button>
         </div>
       </div>
       <!-- Step 3 -->
       <div class="wpanel" id="wp-3">
+        <h3 style="font-family:var(--fe);font-size:16px;font-weight:700;margin-bottom:6px" data-bn="ডকুমেন্ট আপলোড" data-en="Document Upload">ডকুমেন্ট আপলোড</h3>
+        <p style="font-size:13px;color:var(--txt2);margin-bottom:18px" data-bn="প্রয়োজনীয় কাগজপত্র আপলোড করুন (JPG, PNG, PDF — সর্বোচ্চ ৫MB)" data-en="Upload required documents (JPG, PNG, PDF — max 5MB)">প্রয়োজনীয় কাগজপত্র আপলোড করুন</p>
+        <div id="docFields"></div>
+        <div style="display:flex;gap:10px;margin-top:18px">
+          <button class="btn-g" onclick="prevStep(3)"><span data-bn="← পেছনে" data-en="← Back">← পেছনে</span></button>
+          <button class="btn-p" style="flex:1" onclick="nextStep(3)"><span data-bn="পেমেন্টে যান →" data-en="Go to Payment →">পেমেন্টে যান →</span></button>
+        </div>
+      </div>
+      <!-- Step 4 -->
+      <div class="wpanel" id="wp-4">
         <h3 style="font-family:var(--fe);font-size:16px;font-weight:700;margin-bottom:18px" data-bn="পেমেন্ট করুন" data-en="Make Payment">পেমেন্ট করুন</h3>
         <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:18px">
           <div class="det-row"><span class="det-lbl" data-bn="সেবা" data-en="Service">সেবা</span><span class="det-val" id="sumSvc">—</span></div>
-          <div class="det-row"><span class="det-lbl" data-bn="তারিখ ও সময়" data-en="Date & Time">তারিখ ও সময়</span><span class="det-val" id="sumDT">—</span></div>
+          <div class="det-row"><span class="det-lbl" data-bn="আসন্ন ডেলিভারি" data-en="Est. Delivery">আসন্ন ডেলিভারি</span><span class="det-val" id="sumDT" style="color:var(--green);font-weight:600">—</span></div>
           <div class="det-row"><span class="det-lbl" data-bn="আবেদনকারী" data-en="Applicant">আবেদনকারী</span><span class="det-val" id="sumName">—</span></div>
           <div class="det-row" style="border-top:2px solid var(--border2);margin-top:6px;padding-top:10px">
             <span style="font-weight:700" data-bn="মোট পরিমাণ" data-en="Total Amount">মোট পরিমাণ</span>
@@ -775,13 +781,13 @@ tr:hover td{background:rgba(255,255,255,.015)}
           <button class="pay-opt" onclick="selPay(this,'netbanking')"><span class="pay-icon">🏦</span><span class="pay-lbl" data-bn="নেটব্যাংকিং" data-en="Net Banking">নেটব্যাংকিং</span></button>
         </div>
         <div style="display:flex;gap:10px;margin-top:18px">
-          <button class="btn-g" onclick="prevStep(3)"><span data-bn="← পেছনে" data-en="← Back">← পেছনে</span></button>
+          <button class="btn-g" onclick="prevStep(4)"><span data-bn="← পেছনে" data-en="← Back">← পেছনে</span></button>
           <button class="btn-p" style="flex:1" id="payBtn" onclick="doPayment()">🔒 <span data-bn="নিরাপদ পেমেন্ট করুন" data-en="Secure Payment">নিরাপদ পেমেন্ট করুন</span></button>
         </div>
         <p style="text-align:center;font-size:11px;color:var(--txt3);margin-top:10px">🔒 <span data-bn="Razorpay দ্বারা সুরক্ষিত" data-en="Secured by Razorpay">Razorpay দ্বারা সুরক্ষিত</span></p>
       </div>
-      <!-- Step 4 -->
-      <div class="wpanel" id="wp-4">
+      <!-- Step 5 -->
+      <div class="wpanel" id="wp-5">
         <div class="success-screen">
           <div class="success-icon">✅</div>
           <h2 style="font-family:var(--fe);font-size:24px;font-weight:800;margin-bottom:10px" data-bn="বুকিং সম্পন্ন!" data-en="Booking Confirmed!">বুকিং সম্পন্ন!</h2>
@@ -1117,7 +1123,6 @@ let lang = 'bn', theme = 'dark', curUser = null, payMethod = 'upi', bkData = {},
 document.addEventListener('DOMContentLoaded', ()=>{
   const t = localStorage.getItem('gTheme')||'dark';
   if(t==='light') toggleTheme();
-  document.getElementById('bkDate').min = new Date().toISOString().split('T')[0];
   renderSvc(); animCounts();
 });
 
@@ -1241,19 +1246,95 @@ function nextStep(from){
     const p=document.getElementById('bkPhone').value.trim();
     const a=document.getElementById('bkAddress').value.trim();
     const s=document.getElementById('bkService').value;
-    const d=document.getElementById('bkDate').value;
-    const tm=document.getElementById('bkTime').value;
-    if(!n||!p||!a||!s||!d||!tm){toast(lang==='en'?'Please fill all required fields':'সব প্রয়োজনীয় তথ্য পূরণ করুন','error');return;}
-    bkData={name:n,phone:p,address:a,service:s,date:d,time:tm};
-    updSummary();
+    if(!n||!p||!a||!s){toast(lang==='en'?'Please fill all required fields':'সব প্রয়োজনীয় তথ্য পূরণ করুন','error');return;}
+    bkData={name:n,phone:p,address:a,service:s};
+    // Pre-fill OTP phone field
+    document.getElementById('otpPhone').value=p;
+    document.getElementById('otpInputWrap').style.display='none';
+    document.getElementById('otpTimer').textContent='';
+    otpVerified=false;
   }
+  if(from===3){ updSummary(); }
   goStep(from+1);
+}
+
+// OTP state
+let otpVerified=false, otpCode='', otpExpiry=null, otpTimerInt=null;
+
+function getDeliveryDate(serviceId){
+  const now=new Date();
+  // delivery days by service type
+  const days={pvc:2,'aadhaar-mobile':15,'aadhaar-address':10,'aadhaar-photo':10,
+    'aadhaar-biometric':10,'pan-new':20,'pan-correction':15,'life-cert':7,'form-fillup':3};
+  const d=days[serviceId]||5;
+  const delivery=new Date(now);
+  let added=0, cur=new Date(now);
+  while(added<d){ cur.setDate(cur.getDate()+1); if(cur.getDay()!==0&&cur.getDay()!==6) added++; }
+  const months=lang==='en'
+    ?['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    :['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টে','অক্টো','নভে','ডিসে'];
+  return `${cur.getDate()} ${months[cur.getMonth()]}, ${cur.getFullYear()}`;
+}
+
+function sendOTP(){
+  const ph=document.getElementById('otpPhone').value.trim();
+  if(!ph||ph.length<10){toast(lang==='en'?'Enter a valid phone number':'সঠিক ফোন নম্বর দিন','error');return;}
+  // Generate 6-digit OTP
+  otpCode=String(Math.floor(100000+Math.random()*900000));
+  otpExpiry=Date.now()+5*60*1000; // 5 min
+  // Send via Fonnte API
+  fetch('http://localhost:5000/api/otp/send',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({phone:ph,otp:otpCode})
+  }).then(r=>r.json()).then(d=>{
+    toast(lang==='en'?'OTP sent to your WhatsApp!':'WhatsApp-এ OTP পাঠানো হয়েছে!','success');
+    document.getElementById('otpInputWrap').style.display='block';
+    document.getElementById('sendOtpBtn').disabled=true;
+    // Countdown timer
+    if(otpTimerInt) clearInterval(otpTimerInt);
+    let sec=300;
+    otpTimerInt=setInterval(()=>{
+      sec--;
+      const m=Math.floor(sec/60), s=sec%60;
+      document.getElementById('otpTimer').textContent=`OTP মেয়াদ: ${m}:${s<10?'0'+s:s}`;
+      if(sec<=0){clearInterval(otpTimerInt);document.getElementById('sendOtpBtn').disabled=false;
+        document.getElementById('otpTimer').textContent=lang==='en'?'OTP expired. Resend.':'OTP মেয়াদ শেষ। আবার পাঠান।';}
+    },1000);
+  }).catch(()=>{
+    // Dev fallback: show OTP in toast
+    toast('OTP (dev): '+otpCode,'info');
+    document.getElementById('otpInputWrap').style.display='block';
+    document.getElementById('sendOtpBtn').disabled=true;
+    if(otpTimerInt) clearInterval(otpTimerInt);
+    let sec=300;
+    otpTimerInt=setInterval(()=>{
+      sec--;
+      const m=Math.floor(sec/60), s=sec%60;
+      document.getElementById('otpTimer').textContent=`OTP মেয়াদ: ${m}:${s<10?'0'+s:s}`;
+      if(sec<=0){clearInterval(otpTimerInt);document.getElementById('sendOtpBtn').disabled=false;}
+    },1000);
+  });
+}
+
+function verifyOTP(){
+  const entered=document.getElementById('otpInput').value.trim();
+  if(!entered){toast(lang==='en'?'Enter the OTP':'OTP লিখুন','error');return;}
+  if(Date.now()>otpExpiry){toast(lang==='en'?'OTP expired. Please resend.':'OTP মেয়াদ শেষ। আবার পাঠান।','error');return;}
+  if(entered===otpCode){
+    otpVerified=true;
+    if(otpTimerInt) clearInterval(otpTimerInt);
+    toast(lang==='en'?'OTP verified! ✓':'OTP যাচাই সম্পন্ন! ✓','success');
+    goStep(3);
+  } else {
+    toast(lang==='en'?'Incorrect OTP. Try again.':'OTP সঠিক নয়। আবার চেষ্টা করুন।','error');
+  }
 }
 function prevStep(from){ goStep(from-1); }
 function goStep(n){
   document.querySelectorAll('.wpanel').forEach(p=>p.classList.remove('active'));
   document.getElementById('wp-'+n)?.classList.add('active');
-  for(let i=1;i<=4;i++){
+  for(let i=1;i<=5;i++){
     const el=document.getElementById('ws-'+i);
     if(!el) continue;
     el.classList.remove('active','done');
@@ -1300,8 +1381,9 @@ const TIME_LABELS = {'10:00':'সকাল ১০:০০','11:00':'সকাল 
 function updSummary(){
   const sv=bkData.service||'';
   bkData.price=PRICES[sv]||0; bkData.svcName=SVC_NAMES[sv]||sv;
+  bkData.deliveryDate=getDeliveryDate(sv);
   document.getElementById('sumSvc').textContent=bkData.svcName;
-  document.getElementById('sumDT').textContent=`${bkData.date} ${TIME_LABELS[bkData.time]||bkData.time}`;
+  document.getElementById('sumDT').textContent=`📅 ${bkData.deliveryDate}`;
   document.getElementById('sumName').textContent=bkData.name;
   document.getElementById('sumAmt').textContent=`₹${bkData.price}`;
 }
@@ -1313,14 +1395,14 @@ function doPayment(){
   setTimeout(()=>{
     const tid='GZ-'+Math.floor(100000+Math.random()*900000);
     bkData.tid=tid;
-    const nb={id:tid,service:bkData.svcName,name:bkData.name,phone:bkData.phone,date:bkData.date,time:bkData.time,status:'pending',amount:bkData.price,address:bkData.address};
+    const nb={id:tid,service:bkData.svcName,name:bkData.name,phone:bkData.phone,date:bkData.deliveryDate||'',time:'',status:'pending',amount:bkData.price,address:bkData.address};
     BOOKINGS.unshift(nb);
     document.getElementById('finalTID').textContent=tid;
-    const msg=encodeURIComponent(`নমস্কার! গাজী অনলাইনে বুকিং নিশ্চিত হয়েছে।\n\n✅ ট্র্যাকিং: ${tid}\n📋 সেবা: ${bkData.svcName}\n👤 নাম: ${bkData.name}\n📅 তারিখ: ${bkData.date}`);
+    const msg=encodeURIComponent(`নমস্কার! গাজী অনলাইনে বুকিং নিশ্চিত হয়েছে।\n\n✅ ট্র্যাকিং: ${tid}\n📋 সেবা: ${bkData.svcName}\n👤 নাম: ${bkData.name}\n📅 আসন্ন ডেলিভারি: ${bkData.deliveryDate||''}`);
     document.getElementById('waLink').href=`https://wa.me/919800000000?text=${msg}`;
     btn.innerHTML='🔒 <span data-bn="নিরাপদ পেমেন্ট করুন" data-en="Secure Payment">নিরাপদ পেমেন্ট করুন</span>';
     btn.disabled=false;
-    goStep(4);
+    goStep(5);
     toast(lang==='en'?'Booking confirmed! 🎉':'বুকিং সফল হয়েছে! 🎉','success');
   },2200);
 }
@@ -1331,9 +1413,13 @@ function copyTID(){
 function resetBook(){
   ['bkName','bkPhone','bkCity','bkAddress'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('bkService').value='';
-  document.getElementById('bkDate').value='';
-  document.getElementById('bkTime').value='';
   document.getElementById('docFields').innerHTML='';
+  document.getElementById('otpInput').value='';
+  document.getElementById('otpInputWrap').style.display='none';
+  document.getElementById('otpPhone').value='';
+  document.getElementById('sendOtpBtn').disabled=false;
+  if(otpTimerInt) clearInterval(otpTimerInt);
+  otpVerified=false; otpCode=''; otpExpiry=null;
   bkData={};
   goStep(1);
 }
