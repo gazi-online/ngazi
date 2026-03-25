@@ -5,6 +5,10 @@
     {
       "src": "frontend/index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "frontend/robots.txt",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
