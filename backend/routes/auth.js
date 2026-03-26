@@ -98,15 +98,45 @@ router.post('/send-otp', async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
-    // In production: send via SMS/Firebase
-    // For demo: return OTP (never in production!)
+    // Save OTP to user document
     await User.findOneAndUpdate(
       { phone: phone.replace(/[^0-9]/g, '') },
       { otp: { code: otp, expiresAt } },
       { upsert: false }
     );
 
-    console.log(`OTP for ${phone}: ${otp}`); // Dev only
+    // Send OTP via Fonnte (WhatsApp)
+    const fonnteToken = process.env.FONNTE_TOKEN;
+    if (fonnteToken) {
+      const axios = require('axios');
+      // Format phone number to Indonesian/International format if needed, 
+      // but assuming the Fonnte token and target numbers are configured correctly.
+      let target = phone.replace(/[^0-9]/g, '');
+      if (target.startsWith('0')) {
+        target = '880' + target.substring(1); // Defaulting to Bangladesh country code for Gazi Online as per convention, or just pass it through.
+      }
+      
+      const message = `আপনার গাজী অনলাইন ভেরিফিকেশন কোড: ${otp}\nকোডটি কারো সাথে শেয়ার করবেন না।`;
+      
+      await axios.post(
+        'https://api.fonnte.com/send',
+        {
+          target: target,
+          message: message,
+          delay: '2',
+          countryCode: '880'
+        },
+        {
+          headers: {
+            Authorization: fonnteToken
+          }
+        }
+      ).catch(e => {
+        console.error('Fonnte send error:', e?.response?.data || e.message);
+      });
+    }
+
+    console.log(`OTP for ${phone}: ${otp}`); // Dev only fallback
 
     res.json({ success: true, message: 'OTP sent' });
   } catch (err) {

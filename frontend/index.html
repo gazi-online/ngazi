@@ -841,21 +841,39 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <button class="auth-tab" onclick="authTab('reg',this)" data-bn="নিবন্ধন" data-en="Register">নিবন্ধন</button>
       </div>
       <div id="loginForm">
-        <div class="fg"><label class="fl" data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</label><input type="tel" class="fi" id="lgPhone" placeholder="01XXXXXXXXX"></div>
-        <div class="fg"><label class="fl" data-bn="পাসওয়ার্ড" data-en="Password">পাসওয়ার্ড</label><input type="password" class="fi" id="lgPass" placeholder="••••••••"></div>
-        <button class="btn-p btn-full" style="margin-bottom:12px" onclick="doLogin()"><span data-bn="লগইন করুন" data-en="Login">লগইন করুন</span></button>
-        <div class="divider"><span data-bn="অথবা" data-en="or">অথবা</span></div>
-        <button class="btn-g btn-full" onclick="adminLogin()">🔒 <span data-bn="অ্যাডমিন প্যানেল" data-en="Admin Panel">অ্যাডমিন প্যানেল</span></button>
-        <p style="font-size:12px;color:var(--txt3);text-align:center;margin-top:12px" data-bn="অ্যাডমিন: 9800000000 / admin123" data-en="Admin: 9800000000 / admin123">অ্যাডমিন: 9800000000 / admin123</p>
+        <div id="lgFields">
+          <div class="fg"><label class="fl" data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</label><input type="tel" class="fi" id="lgPhone" placeholder="01XXXXXXXXX"></div>
+          <div class="fg"><label class="fl" data-bn="পাসওয়ার্ড" data-en="Password">পাসওয়ার্ড</label><input type="password" class="fi" id="lgPass" placeholder="••••••••"></div>
+          <button class="btn-p btn-full" style="margin-bottom:12px" id="lgBtn" onclick="doLogin()"><span data-bn="লগইন করুন" data-en="Login">লগইন করুন</span></button>
+          <div class="divider"><span data-bn="অথবা" data-en="or">অথবা</span></div>
+          <button class="btn-g btn-full" onclick="adminLogin()">🔒 <span data-bn="অ্যাডমিন প্যানেল" data-en="Admin Panel">অ্যাডমিন প্যানেল</span></button>
+          <p style="font-size:12px;color:var(--txt3);text-align:center;margin-top:12px" data-bn="অ্যাডমিন: 9800000000 / admin123" data-en="Admin: 9800000000 / admin123">অ্যাডমিন: 9800000000 / admin123</p>
+        </div>
+        <div id="lgOtpWrap" style="display:none;text-align:center;padding:10px 0">
+          <div style="font-size:40px;margin-bottom:10px">💬</div>
+          <h3 style="font-family:var(--fe);margin-bottom:8px" data-bn="OTP যাচাই করুন" data-en="Verify OTP">OTP যাচাই করুন</h3>
+          <p style="font-size:13px;color:var(--txt2);margin-bottom:16px" data-bn="আপনার WhatsApp এ পাঠানো ৬-ডিজিটের কোডটি লিখুন" data-en="Enter the 6-digit code sent to your WhatsApp">আপনার WhatsApp এ পাঠানো ৬-ডিজিটের কোডটি লিখুন</p>
+          <input type="text" class="fi" id="lgOtpInput" placeholder="৬-ডিজিট OTP" style="text-align:center;letter-spacing:4px;font-size:18px;font-weight:700;margin-bottom:14px">
+          <button class="btn-p btn-full" id="lgOtpBtn" onclick="verifyLoginOTP()"><span data-bn="যাচাই করুন" data-en="Verify">যাচাই করুন</span></button>
+        </div>
       </div>
       <div id="regForm" style="display:none">
-        <div class="fg"><label class="fl"><span data-bn="পুরো নাম" data-en="Full Name">পুরো নাম</span> <span class="req">*</span></label><input type="text" class="fi" id="rgName" data-bn-ph="আপনার নাম" data-en-ph="Your name" placeholder="আপনার নাম"></div>
-        <div class="fg"><label class="fl"><span data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</span> <span class="req">*</span></label><input type="tel" class="fi" id="rgPhone" placeholder="01XXXXXXXXX"></div>
-        <div class="fr">
-          <div class="fg"><label class="fl"><span data-bn="পাসওয়ার্ড" data-en="Password">পাসওয়ার্ড</span> <span class="req">*</span></label><input type="password" class="fi" id="rgPass" placeholder="••••••••"></div>
-          <div class="fg"><label class="fl" data-bn="নিশ্চিত করুন" data-en="Confirm">নিশ্চিত করুন</label><input type="password" class="fi" id="rgPass2" placeholder="••••••••"></div>
+        <div id="rgFields">
+          <div class="fg"><label class="fl"><span data-bn="পুরো নাম" data-en="Full Name">পুরো নাম</span> <span class="req">*</span></label><input type="text" class="fi" id="rgName" data-bn-ph="আপনার নাম" data-en-ph="Your name" placeholder="আপনার নাম"></div>
+          <div class="fg"><label class="fl"><span data-bn="ফোন নম্বর" data-en="Phone Number">ফোন নম্বর</span> <span class="req">*</span></label><input type="tel" class="fi" id="rgPhone" placeholder="01XXXXXXXXX"></div>
+          <div class="fr">
+            <div class="fg"><label class="fl"><span data-bn="পাসওয়ার্ড" data-en="Password">পাসওয়ার্ড</span> <span class="req">*</span></label><input type="password" class="fi" id="rgPass" placeholder="••••••••"></div>
+            <div class="fg"><label class="fl" data-bn="নিশ্চিত করুন" data-en="Confirm">নিশ্চিত করুন</label><input type="password" class="fi" id="rgPass2" placeholder="••••••••"></div>
+          </div>
+          <button class="btn-p btn-full" id="rgBtn" onclick="doReg()"><span data-bn="নিবন্ধন করুন" data-en="Register">নিবন্ধন করুন</span></button>
         </div>
-        <button class="btn-p btn-full" onclick="doReg()"><span data-bn="নিবন্ধন করুন" data-en="Register">নিবন্ধন করুন</span></button>
+        <div id="rgOtpWrap" style="display:none;text-align:center;padding:10px 0">
+          <div style="font-size:40px;margin-bottom:10px">💬</div>
+          <h3 style="font-family:var(--fe);margin-bottom:8px" data-bn="OTP যাচাই করুন" data-en="Verify OTP">OTP যাচাই করুন</h3>
+          <p style="font-size:13px;color:var(--txt2);margin-bottom:16px" data-bn="আপনার WhatsApp এ পাঠানো ৬-ডিজিটের কোডটি লিখুন" data-en="Enter the 6-digit code sent to your WhatsApp">আপনার WhatsApp এ পাঠানো ৬-ডিজিটের কোডটি লিখুন</p>
+          <input type="text" class="fi" id="rgOtpInput" placeholder="৬-ডিজিট OTP" style="text-align:center;letter-spacing:4px;font-size:18px;font-weight:700;margin-bottom:14px">
+          <button class="btn-p btn-full" id="rgOtpBtn" onclick="verifyRegOTP()"><span data-bn="যাচাই করুন" data-en="Verify">যাচাই করুন</span></button>
+        </div>
       </div>
     </div>
   </div>
@@ -1480,24 +1498,165 @@ function authTab(tab, btn){
   document.getElementById('loginForm').style.display=tab==='login'?'block':'none';
   document.getElementById('regForm').style.display=tab==='reg'?'block':'none';
 }
-function doLogin(){
+async function doLogin(){
   const p=document.getElementById('lgPhone').value.trim();
   const pw=document.getElementById('lgPass').value;
   if(!p||!pw){toast(lang==='en'?'Enter phone and password':'ফোন নম্বর ও পাসওয়ার্ড দিন','error');return;}
-  curUser={name:'রহিম উদ্দিন',phone:p};
-  toast(lang==='en'?'Login successful! 👋':'সফলভাবে লগইন হয়েছে! 👋','success');
-  document.getElementById('nav-auth').querySelector('span').textContent='👤 '+(lang==='en'?'Dashboard':'ড্যাশবোর্ড');
-  setTimeout(()=>goto('dashboard'),800);
+  
+  const btn = document.getElementById('lgBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: p, password: pw })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Send OTP
+      await fetch(`${API_BASE}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: p })
+      });
+      toast(lang==='en'?'OTP sent to your phone!':'WhatsApp-এ OTP পাঠানো হয়েছে!','success');
+      document.getElementById('lgFields').style.display='none';
+      document.getElementById('lgOtpWrap').style.display='block';
+    } else {
+      toast(data.message || 'Login failed', 'error');
+    }
+  } catch (err) {
+    toast('Network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span data-bn="লগইন করুন" data-en="Login">লগইন করুন</span>';
+  }
 }
-function doReg(){
+
+async function verifyLoginOTP(){
+  const otp = document.getElementById('lgOtpInput').value.trim();
+  const p = document.getElementById('lgPhone').value.trim();
+  if(!otp){toast(lang==='en'?'Enter the OTP':'OTP লিখুন','error');return;}
+
+  const btn = document.getElementById('lgOtpBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: p, otp })
+    });
+    const data = await res.json();
+    if (data.success) {
+      curUser = data.user;
+      localStorage.setItem('gToken', data.token); // Save token
+      toast(lang==='en'?'Login successful! 👋':'সফলভাবে লগইন হয়েছে! 👋','success');
+      document.getElementById('nav-auth').querySelector('span').textContent='👤 '+(lang==='en'?'Dashboard':'ড্যাশবোর্ড');
+      setTimeout(()=>goto('dashboard'),800);
+      
+      // Reset forms
+      document.getElementById('lgFields').style.display='block';
+      document.getElementById('lgOtpWrap').style.display='none';
+      document.getElementById('lgPhone').value='';
+      document.getElementById('lgPass').value='';
+      document.getElementById('lgOtpInput').value='';
+    } else {
+      toast(data.message || 'Invalid OTP', 'error');
+    }
+  } catch (err) {
+    toast('Network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span data-bn="যাচাই করুন" data-en="Verify">যাচাই করুন</span>';
+  }
+}
+
+async function doReg(){
   const n=document.getElementById('rgName').value.trim();
   const p=document.getElementById('rgPhone').value.trim();
   const pw=document.getElementById('rgPass').value;
   const pw2=document.getElementById('rgPass2').value;
+
   if(!n||!p||!pw){toast(lang==='en'?'Fill all fields':'সব তথ্য পূরণ করুন','error');return;}
   if(pw!==pw2){toast(lang==='en'?'Passwords do not match':'পাসওয়ার্ড মিলছে না','error');return;}
   if(pw.length<6){toast(lang==='en'?'Password min 6 characters':'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর','error');return;}
-  toast(lang==='en'?'Registration successful!':'নিবন্ধন সফল! লগইন করুন।','success');
+
+  const btn = document.getElementById('rgBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: n, phone: p, password: pw })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Send OTP
+      await fetch(`${API_BASE}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: p })
+      });
+      toast(lang==='en'?'OTP sent to your phone!':'WhatsApp-এ OTP পাঠানো হয়েছে!','success');
+      document.getElementById('rgFields').style.display='none';
+      document.getElementById('rgOtpWrap').style.display='block';
+    } else {
+      toast(data.message || 'Registration failed', 'error');
+    }
+  } catch (err) {
+    toast('Network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span data-bn="নিবন্ধন করুন" data-en="Register">নিবন্ধন করুন</span>';
+  }
+}
+
+async function verifyRegOTP(){
+  const otp = document.getElementById('rgOtpInput').value.trim();
+  const p = document.getElementById('rgPhone').value.trim();
+  if(!otp){toast(lang==='en'?'Enter the OTP':'OTP লিখুন','error');return;}
+
+  const btn = document.getElementById('rgOtpBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: p, otp })
+    });
+    const data = await res.json();
+    if (data.success) {
+      curUser = data.user;
+      localStorage.setItem('gToken', data.token); // Save token
+      toast(lang==='en'?'Registration successful! 👋':'নিবন্ধন সফল! 👋','success');
+      document.getElementById('nav-auth').querySelector('span').textContent='👤 '+(lang==='en'?'Dashboard':'ড্যাশবোর্ড');
+      setTimeout(()=>goto('dashboard'),800);
+      
+      // Reset forms
+      document.getElementById('rgFields').style.display='block';
+      document.getElementById('rgOtpWrap').style.display='none';
+      document.getElementById('rgName').value='';
+      document.getElementById('rgPhone').value='';
+      document.getElementById('rgPass').value='';
+      document.getElementById('rgPass2').value='';
+      document.getElementById('rgOtpInput').value='';
+    } else {
+      toast(data.message || 'Invalid OTP', 'error');
+    }
+  } catch (err) {
+    toast('Network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span data-bn="যাচাই করুন" data-en="Verify">যাচাই করুন</span>';
+  }
 }
 function adminLogin(){
   const p=document.getElementById('lgPhone').value.trim();
