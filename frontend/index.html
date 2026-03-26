@@ -1082,6 +1082,9 @@ const BOOKINGS = [
 
 // ========== STATE ==========
 let lang = 'bn', theme = 'dark', curUser = null, payMethod = 'upi', bkData = {}, wStep = 1;
+const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000'
+  : 'https://gazi-online-api.onrender.com';
 
 // ========== PARTICLES ==========
 (function(){
@@ -1283,7 +1286,7 @@ function sendOTP(){
   otpCode=String(Math.floor(100000+Math.random()*900000));
   otpExpiry=Date.now()+5*60*1000; // 5 min
   // Send via Fonnte API
-  fetch('http://localhost:5000/api/otp/send',{
+  fetch(`${API_BASE}/api/otp/send`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({phone:ph,otp:otpCode})
