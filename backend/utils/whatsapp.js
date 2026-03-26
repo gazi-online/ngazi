@@ -55,7 +55,8 @@ const sendWhatsAppConfirmation = async (booking) => {
     }
 
     // Mark as sent
-    await require('../models/Booking').findByIdAndUpdate(booking._id, { whatsappSent: true });
+    const supabase = require('../config/supabase');
+    await supabase.from('bookings').update({ whatsappSent: true }).eq('id', booking.id);
 
   } catch (err) {
     console.error('WhatsApp send error:', err.message);

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const supabase = require('../config/supabase');
 
 // Strict auth - requires valid token
 const protect = async (req, res, next) => {
@@ -16,9 +16,14 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Not authorized. Please login.' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
+    
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, name, phone, email, role, isActive, isVerified, lastLogin, createdAt')
+      .eq('id', decoded.id)
+      .single();
 
-    if (!user)
+    if (error || !user)
       return res.status(401).json({ success: false, message: 'User not found' });
 
     if (!user.isActive)
@@ -44,7 +49,12 @@ const optionalAuth = async (req, res, next) => {
     }
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
+      const { data: user } = await supabase
+        .from('users')
+        .select('id, name, phone, email, role, isActive, isVerified')
+        .eq('id', decoded.id)
+        .single();
+      if (user) req.user = user;
     }
   } catch (err) {
     // Ignore auth errors for optional auth
