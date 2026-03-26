@@ -16,15 +16,22 @@ app.use(helmet({
 
 app.use(cors({
   origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Render health checks, etc.)
     if (!origin) return callback(null, true);
+
     const allowed = [
-      process.env.CLIENT_URL || 'http://localhost:3000',
+      process.env.CLIENT_URL,
       'http://localhost:3000',
       'http://localhost:3001',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
-    ];
-    if (allowed.includes(origin)) return callback(null, true);
+      'https://ngazi-delta.vercel.app',
+    ].filter(Boolean);
+
+    // Also allow any *.vercel.app subdomain dynamically
+    const isVercel = origin.endsWith('.vercel.app');
+
+    if (allowed.includes(origin) || isVercel) return callback(null, true);
     return callback(new Error('CORS not allowed: ' + origin));
   },
   credentials: true,
