@@ -104,20 +104,44 @@ router.post('/send-otp', async (req, res) => {
     if (fonnteToken) {
       const axios = require('axios');
       let target = cleanPhone;
-      if (target.startsWith('0')) target = '880' + target.substring(1);
+      
+      if (target.startsWith('01') && target.length === 11) {
+        target = '88' + target;
+      } else if (target.length === 10) {
+        target = '91' + target;
+      } else if (target.startsWith('1') && target.length === 10) {
+        target = '880' + target;
+      }
+      
       const message = `আপনার গাজী অনলাইন ভেরিফিকেশন কোড: ${otp}\nকোডটি কারো সাথে শেয়ার করবেন না।`;
       
-      await axios.post('https://api.fonnte.com/send', {
-        target: target,
-        message: message,
-        delay: '2',
-        countryCode: '880'
-      }, { headers: { Authorization: fonnteToken } }).catch(e => {
-        console.error('Fonnte send error:', e?.response?.data || e.message);
-      });
+      console.log(`[Fonnte] Sending OTP to ${target}`);
+      
+      try {
+        const response = await axios.post('https://api.fonnte.com/send', {
+          target: target,
+          message: message,
+          delay: '2',
+          countryCode: '0'
+        }, { 
+          headers: { Authorization: fonnteToken } 
+        });
+        
+        console.log('[Fonnte] API Response:', response.data);
+        
+        if (!response.data || response.data.status === false) {
+          throw new Error(response.data.reason || 'WhatsApp API failed');
+        }
+      } catch (err) {
+        console.error('[Fonnte] Send error:', err.response?.data || err.message);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'WhatsApp OTP পাঠাতে সমস্যা হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।' 
+        });
+      }
     }
 
-    console.log(`OTP for ${cleanPhone}: ${otp}`); // Dev only fallback
+    console.log(`OTP for ${cleanPhone}: ${otp}`); // Log for dev/debug
     res.json({ success: true, message: 'OTP sent' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
