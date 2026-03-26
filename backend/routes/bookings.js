@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Booking = require('../models/Booking');
+const supabase = require('../config/supabase');
 const { protect, optionalAuth } = require('../middleware/auth');
 const { validateBooking } = require('../middleware/validate');
 const { sendWhatsAppConfirmation } = require('../utils/whatsapp');
 
 // ── CREATE BOOKING ───────────────────────────────────────────────
-// POST /api/bookings
 router.post('/', optionalAuth, validateBooking, async (req, res) => {
   try {
     const {
@@ -16,23 +15,42 @@ router.post('/', optionalAuth, validateBooking, async (req, res) => {
       paymentAmount
     } = req.body;
 
-    const booking = await Booking.create({
-      user: req.user?._id || null,
+    // Generate tracking ID
+    const { count, error: countErr } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true });
+    
+    if (countErr) throw countErr;
+    const trackingId = `GZ-${String(count + 1).padStart(6, '0')}`;
+
+    const newBooking = {
+      trackingId,
+      userId: req.user?.id || null,
       name: name.trim(),
       phone: phone.replace(/[^0-9]/g, ''),
       whatsapp: (whatsapp || phone).replace(/[^0-9]/g, ''),
       address: address.trim(),
-      city: city?.trim(),
+      city: city?.trim() || null,
       service,
-      serviceDetails: serviceDetails?.trim(),
-      appointmentDate: new Date(appointmentDate),
+      serviceDetails: serviceDetails?.trim() || null,
+      appointmentDate: new Date(appointmentDate).toISOString(),
       appointmentTime,
       payment: {
         amount: paymentAmount || getServicePrice(service),
         status: 'pending'
       },
-      timeline: [{ status: 'pending', note: 'Booking created', timestamp: new Date() }]
-    });
+      timeline: [{ status: 'pending', note: 'Booking created', timestamp: new Date().toISOString() }],
+      status: 'pending',
+      isDeleted: false
+    };
+
+    const { data: booking, error: insertErr } = await supabase
+      .from('bookings')
+      .insert(newBooking)
+      .select()
+      .single();
+
+    if (insertErr) throw insertErr;
 
     // Send WhatsApp confirmation (non-blocking)
     sendWhatsAppConfirmation(booking).catch(console.error);
@@ -42,27 +60,27 @@ router.post('/', optionalAuth, validateBooking, async (req, res) => {
       message: 'Booking created successfully',
       data: {
         trackingId: booking.trackingId,
-        id: booking._id,
+        id: booking.id,
         status: booking.status,
         amount: booking.payment.amount
       }
     });
-
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // ── GET USER BOOKINGS ────────────────────────────────────────────
-// GET /api/bookings/my
 router.get('/my', protect, async (req, res) => {
   try {
-    const bookings = await Booking.find({
-      user: req.user._id,
-      isDeleted: false
-    })
-    .sort({ createdAt: -1 })
-    .select('-documents.publicId -__v');
+    const { data: bookings, error } = await supabase
+      .from('bookings')
+      .select('id, trackingId, name, phone, whatsapp, address, city, service, serviceDetails, appointmentDate, appointmentTime, payment, status, adminNotes, processedBy, timeline, whatsappSent, createdAt, updatedAt')
+      .eq('userId', req.user.id)
+      .eq('isDeleted', false)
+      .order('createdAt', { ascending: false });
+
+    if (error) throw error;
 
     res.json({ success: true, count: bookings.length, data: bookings });
   } catch (err) {
@@ -71,15 +89,16 @@ router.get('/my', protect, async (req, res) => {
 });
 
 // ── GET SINGLE BOOKING (for user) ────────────────────────────────
-// GET /api/bookings/:trackingId
 router.get('/:trackingId', async (req, res) => {
   try {
-    const booking = await Booking.findOne({
-      trackingId: req.params.trackingId.toUpperCase(),
-      isDeleted: false
-    }).select('-documents.publicId -payment.razorpaySignature -__v');
+    const { data: booking, error } = await supabase
+      .from('bookings')
+      .select('trackingId, service, status, appointmentDate, appointmentTime, name, phone, timeline, payment, createdAt')
+      .eq('trackingId', req.params.trackingId.toUpperCase())
+      .eq('isDeleted', false)
+      .single();
 
-    if (!booking)
+    if (error || !booking)
       return res.status(404).json({ success: false, message: 'Booking not found' });
 
     // Redact sensitive info for public

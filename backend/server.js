@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -68,16 +67,8 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ── DATABASE CONNECTION ─────────────────────────────────────────
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB error:', err));
-
-mongoose.connection.on('error', err => {
-  console.error('MongoDB connection error:', err);
-});
+const supabase = require('./config/supabase');
+console.log('✅ Supabase Client Initialized');
 
 // ── ROUTES ──────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, require('./routes/auth'));

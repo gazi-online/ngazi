@@ -1,48 +1,66 @@
 const express = require('express');
 const router = express.Router();
-const Booking = require('../models/Booking');
-const User = require('../models/User');
+const supabase = require('../config/supabase');
 const { protect, adminOnly } = require('../middleware/auth');
 
 // All admin routes require authentication + admin role
 router.use(protect, adminOnly);
 
+// ── OPTIONAL: PROMISE WRAPPER FOR COUNTS ─────────────────────────
+const getCount = async (query) => {
+  const { count, error } = await query.select('id', { count: 'exact', head: true });
+  if (error) throw error;
+  return count || 0;
+};
+
 // ── DASHBOARD STATS ──────────────────────────────────────────────
-// GET /api/admin/stats
 router.get('/stats', async (req, res) => {
   try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const [
       totalBookings,
       pendingCount,
       processingCount,
       completedCount,
       cancelledCount,
-      revenueResult,
       totalUsers,
       todayBookings
     ] = await Promise.all([
-      Booking.countDocuments({ isDeleted: false }),
-      Booking.countDocuments({ status: 'pending', isDeleted: false }),
-      Booking.countDocuments({ status: 'processing', isDeleted: false }),
-      Booking.countDocuments({ status: 'completed', isDeleted: false }),
-      Booking.countDocuments({ status: 'cancelled', isDeleted: false }),
-      Booking.aggregate([
-        { $match: { 'payment.status': 'paid', isDeleted: false } },
-        { $group: { _id: null, total: { $sum: '$payment.amount' } } }
-      ]),
-      User.countDocuments({ role: 'user' }),
-      Booking.countDocuments({
-        createdAt: { $gte: new Date(new Date().setHours(0,0,0,0)) },
-        isDeleted: false
-      })
+      getCount(supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('isDeleted', false)),
+      getCount(supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'pending').eq('isDeleted', false)),
+      getCount(supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'processing').eq('isDeleted', false)),
+      getCount(supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'completed').eq('isDeleted', false)),
+      getCount(supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'cancelled').eq('isDeleted', false)),
+      getCount(supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'user')),
+      getCount(supabase.from('bookings').select('id', { count: 'exact', head: true }).gte('createdAt', today.toISOString()).eq('isDeleted', false))
     ]);
 
-    // Service-wise breakdown
-    const serviceBreakdown = await Booking.aggregate([
-      { $match: { isDeleted: false } },
-      { $group: { _id: '$service', count: { $sum: 1 }, revenue: { $sum: '$payment.amount' } } },
-      { $sort: { count: -1 } }
-    ]);
+    // Service Breakdown & Total Revenue (JS evaluation)
+    const { data: allBookings, error } = await supabase
+      .from('bookings')
+      .select('service, payment')
+      .eq('isDeleted', false);
+
+    if (error) throw error;
+
+    let totalRevenue = 0;
+    const breakdownMap = {};
+
+    allBookings.forEach(b => {
+      const isPaid = b.payment?.status === 'paid';
+      const amt = isPaid ? (Number(b.payment.amount) || 0) : 0;
+      totalRevenue += amt;
+
+      if (!breakdownMap[b.service]) {
+        breakdownMap[b.service] = { _id: b.service, count: 0, revenue: 0 };
+      }
+      breakdownMap[b.service].count += 1;
+      breakdownMap[b.service].revenue += amt;
+    });
+
+    const serviceBreakdown = Object.values(breakdownMap).sort((a, b) => b.count - a.count);
 
     res.json({
       success: true,
@@ -52,7 +70,7 @@ router.get('/stats', async (req, res) => {
         processingCount,
         completedCount,
         cancelledCount,
-        totalRevenue: revenueResult[0]?.total || 0,
+        totalRevenue,
         totalUsers,
         todayBookings,
         serviceBreakdown
@@ -64,7 +82,6 @@ router.get('/stats', async (req, res) => {
 });
 
 // ── GET ALL BOOKINGS ─────────────────────────────────────────────
-// GET /api/admin/bookings
 router.get('/bookings', async (req, res) => {
   try {
     const {
@@ -72,44 +89,44 @@ router.get('/bookings', async (req, res) => {
       limit = 20, search, sort = 'createdAt', order = 'desc'
     } = req.query;
 
-    const filter = { isDeleted: false };
-    if (status) filter.status = status;
-    if (service) filter.service = service;
+    let query = supabase
+      .from('bookings')
+      .select('*', { count: 'exact' })
+      .eq('isDeleted', false);
+
+    if (status) query = query.eq('status', status);
+    if (service) query = query.eq('service', service);
+    
     if (date) {
       const d = new Date(date);
-      filter.createdAt = {
-        $gte: new Date(d.setHours(0, 0, 0, 0)),
-        $lte: new Date(d.setHours(23, 59, 59, 999))
-      };
+      const start = new Date(d.setHours(0, 0, 0, 0)).toISOString();
+      const end = new Date(d.setHours(23, 59, 59, 999)).toISOString();
+      query = query.gte('createdAt', start).lte('createdAt', end);
     }
+    
     if (search) {
-      filter.$or = [
-        { trackingId: { $regex: search, $options: 'i' } },
-        { name: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } }
-      ];
+      // Supabase basic OR logic for search
+      query = query.or(`trackingId.ilike.%${search}%,name.ilike.%${search}%,phone.ilike.%${search}%`);
     }
 
-    const sortObj = { [sort]: order === 'asc' ? 1 : -1 };
+    const sortObj = order === 'asc' ? true : false;
     const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    query = query
+      .order(sort, { ascending: sortObj })
+      .range(skip, skip + parseInt(limit) - 1);
 
-    const [bookings, total] = await Promise.all([
-      Booking.find(filter)
-        .sort(sortObj)
-        .skip(skip)
-        .limit(parseInt(limit))
-        .select('-payment.razorpaySignature -__v'),
-      Booking.countDocuments(filter)
-    ]);
+    const { data: bookings, count, error } = await query;
+    if (error) throw error;
 
     res.json({
       success: true,
       data: bookings,
       pagination: {
-        total,
+        total: count,
         page: parseInt(page),
         limit: parseInt(limit),
-        totalPages: Math.ceil(total / parseInt(limit))
+        totalPages: Math.ceil(count / parseInt(limit))
       }
     });
   } catch (err) {
@@ -118,18 +135,21 @@ router.get('/bookings', async (req, res) => {
 });
 
 // ── GET SINGLE BOOKING (FULL) ─────────────────────────────────────
-// GET /api/admin/bookings/:id
 router.get('/bookings/:id', async (req, res) => {
   try {
-    const booking = await Booking.findOne({
-      $or: [
-        { _id: req.params.id },
-        { trackingId: req.params.id.toUpperCase() }
-      ],
-      isDeleted: false
-    });
+    const idParam = req.params.id;
+    let query = supabase.from('bookings').select('*').eq('isDeleted', false);
 
-    if (!booking)
+    // Is it UUID or Tracking ID?
+    if (idParam.length === 36 && idParam.includes('-')) {
+      query = query.eq('id', idParam);
+    } else {
+      query = query.eq('trackingId', idParam.toUpperCase());
+    }
+
+    const { data: booking, error } = await query.single();
+    
+    if (error || !booking)
       return res.status(404).json({ success: false, message: 'Booking not found' });
 
     res.json({ success: true, data: booking });
@@ -139,7 +159,6 @@ router.get('/bookings/:id', async (req, res) => {
 });
 
 // ── UPDATE BOOKING STATUS ─────────────────────────────────────────
-// PATCH /api/admin/bookings/:id/status
 router.patch('/bookings/:id/status', async (req, res) => {
   try {
     const { status, notes } = req.body;
@@ -148,26 +167,41 @@ router.patch('/bookings/:id/status', async (req, res) => {
     if (!validStatuses.includes(status))
       return res.status(400).json({ success: false, message: 'Invalid status' });
 
-    const booking = await Booking.findOneAndUpdate(
-      { $or: [{ _id: req.params.id }, { trackingId: req.params.id.toUpperCase() }] },
-      {
+    const idParam = req.params.id;
+    
+    // First, fetch the booking to append to timeline
+    let getQuery = supabase.from('bookings').select('id, timeline').eq('isDeleted', false);
+    if (idParam.length === 36 && idParam.includes('-')) {
+      getQuery = getQuery.eq('id', idParam);
+    } else {
+      getQuery = getQuery.eq('trackingId', idParam.toUpperCase());
+    }
+
+    const { data: oldBooking, error: getErr } = await getQuery.single();
+    if (getErr || !oldBooking)
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    let newTimeline = Array.isArray(oldBooking.timeline) ? [...oldBooking.timeline] : [];
+    newTimeline.push({
+      status,
+      note: notes || `Status updated to ${status}`,
+      updatedBy: req.user.name,
+      timestamp: new Date().toISOString()
+    });
+
+    const { data: booking, error: updateErr } = await supabase
+      .from('bookings')
+      .update({
         status,
         adminNotes: notes,
         processedBy: req.user.name,
-        $push: {
-          timeline: {
-            status,
-            note: notes || `Status updated to ${status}`,
-            updatedBy: req.user.name,
-            timestamp: new Date()
-          }
-        }
-      },
-      { new: true }
-    );
+        timeline: newTimeline
+      })
+      .eq('id', oldBooking.id)
+      .select()
+      .single();
 
-    if (!booking)
-      return res.status(404).json({ success: false, message: 'Booking not found' });
+    if (updateErr) throw updateErr;
 
     res.json({ success: true, message: 'Status updated', data: { status: booking.status } });
   } catch (err) {
@@ -176,10 +210,14 @@ router.patch('/bookings/:id/status', async (req, res) => {
 });
 
 // ── DELETE BOOKING (SOFT) ─────────────────────────────────────────
-// DELETE /api/admin/bookings/:id
 router.delete('/bookings/:id', async (req, res) => {
   try {
-    await Booking.findByIdAndUpdate(req.params.id, { isDeleted: true });
+    const { error } = await supabase
+      .from('bookings')
+      .update({ isDeleted: true })
+      .eq('id', req.params.id);
+
+    if (error) throw error;
     res.json({ success: true, message: 'Booking deleted' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -187,10 +225,15 @@ router.delete('/bookings/:id', async (req, res) => {
 });
 
 // ── GET ALL USERS ─────────────────────────────────────────────────
-// GET /api/admin/users
 router.get('/users', async (req, res) => {
   try {
-    const users = await User.find({ role: 'user' }).select('-password -otp').sort({ createdAt: -1 });
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, name, phone, email, role, isVerified, isActive, lastLogin, pushToken, createdAt')
+      .eq('role', 'user')
+      .order('createdAt', { ascending: false });
+
+    if (error) throw error;
     res.json({ success: true, count: users.length, data: users });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
