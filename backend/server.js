@@ -89,6 +89,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Gazi Online Backend API (Supabase Edition) is Active',
+    docs: 'https://ngazi-delta.vercel.app'
+  });
+});
+
 // ── ERROR HANDLER ───────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error('Server Error:', err);
@@ -100,7 +108,12 @@ app.use((err, req, res, next) => {
 });
 
 app.use('*', (req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  console.log(`404 - Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    success: false, 
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+    suggestion: 'Are you using the correct API endpoint?' 
+  });
 });
 
 // ── START ────────────────────────────────────────────────────────
