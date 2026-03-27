@@ -16,6 +16,19 @@ const SERVICE_LABELS = {
   'form-fillup': 'অনলাইন ফর্ম ফিলআপ'
 };
 
+const SERVICE_EMOJIS = {
+  'pvc': '💳',
+  'aadhaar-mobile': '📱',
+  'aadhaar-address': '🏠',
+  'aadhaar-photo': '📸',
+  'aadhaar-biometric': '🖐️',
+  'pan-new': '📄',
+  'pan-correction': '✏️',
+  'life-cert': '👴',
+  'form-fillup': '📝',
+  'bill-payment': '💡'
+};
+
 /**
  * Send WhatsApp confirmation message after booking
  * @param {Object} booking - Booking document
@@ -24,35 +37,26 @@ const sendWhatsAppConfirmation = async (booking) => {
   try {
     const phone = booking.whatsapp || booking.phone;
     const serviceLabel = SERVICE_LABELS[booking.service] || booking.service;
-    const date = new Date(booking.appointmentDate).toLocaleDateString('bn-BD');
+    const serviceEmoji = SERVICE_EMOJIS[booking.service] || '✨';
+    
+    const dateObj = new Date(booking.appointmentDate || booking.createdAt);
+    const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+    
+    const trackingLink = `${process.env.CLIENT_URL}/?track=${booking.trackingId}`;
+    const receiptLink = `${process.env.CLIENT_URL}/receipt.html?id=${booking.trackingId}`;
 
     const message =
-      `*গাজী অনলাইন - বুকিং নিশ্চিত* ✅\n\n` +
-      `নমস্কার ${booking.name}!\n\n` +
-      `আপনার বুকিং সফলভাবে নিবন্ধিত হয়েছে।\n\n` +
-      `🔑 *ট্র্যাকিং আইডি:* ${booking.trackingId}\n` +
-      `📋 *সেবা:* ${serviceLabel}\n` +
-      `📅 *তারিখ:* ${date}\n` +
-      `⏰ *সময়:* ${booking.appointmentTime}\n` +
-      `💰 *পরিমাণ:* ₹${booking.payment.amount}\n\n` +
-      `আপনার অগ্রগতি ট্র্যাক করুন:\n` +
-      `🔗 ${process.env.CLIENT_URL}/track?id=${booking.trackingId}\n\n` +
-      `যেকোনো সহায়তায় এই নম্বরে WhatsApp করুন।\n` +
-      `ধন্যবাদ 🙏`;
+      `🌟 অভিনন্দন! 🌟\n\n` +
+      `🎉 আপনার ${serviceLabel} আবেদনটি সফলভাবে জমা হয়েছে! 🎉\n\n` +
+      `👤 নাম: "${booking.name}"\n` +
+      `📱 মোবাইল: "${booking.phone}"\n` +
+      `${serviceEmoji} সেবার বিবরণ : "${serviceLabel}"\n` +
+      `🔎 ট্র্যাকিং আইডি : ${trackingLink}\n` +
+      `📅 তারিখ: ${formattedDate}\n\n` +
+      `📎 আপনার অকনোলজ মেন্ট স্লিপ স্লিপটি ডাউনলোড করতে এখানে ক্লিক করুন ( ${receiptLink} )`;
 
-    // Option 1: Meta WhatsApp Business API
-    if (process.env.META_WA_TOKEN && process.env.META_WA_PHONE_ID) {
-      await sendViaMetaAPI(phone, message);
-    }
-    // Option 2: Twilio WhatsApp
-    else if (process.env.TWILIO_ACCOUNT_SID) {
-      await sendViaTwilio(phone, message);
-    }
-    // Option 3: Generate link (fallback)
-    else {
-      const waLink = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
-      console.log(`WhatsApp link: ${waLink}`);
-    }
+    // Send via Fonnte
+    await sendViaFonnte(phone, message);
 
     // Mark as sent
     const supabase = require('../config/supabase');
@@ -60,6 +64,37 @@ const sendWhatsAppConfirmation = async (booking) => {
 
   } catch (err) {
     console.error('WhatsApp send error:', err.message);
+  }
+};
+
+const sendViaFonnte = async (phone, message) => {
+  let targetPhone = String(phone).replace(/\D/g, '');
+  if (targetPhone.startsWith('01') && targetPhone.length === 11) {
+    targetPhone = '88' + targetPhone;
+  } else if (targetPhone.length === 10) {
+    targetPhone = '91' + targetPhone;
+  }
+
+  const token = process.env.FONNTE_TOKEN;
+  if (!token) {
+    console.log('[WA-CONFIRM] Token missing. Link:', `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`);
+    return;
+  }
+
+  try {
+    await axios.post('https://api.fonnte.com/send', {
+      target: targetPhone,
+      message: message,
+      countryCode: '0'
+    }, {
+      headers: { 
+        'Authorization': token.trim(), 
+        'Content-Type': 'application/json' 
+      }
+    });
+  } catch (err) {
+    console.error('WhatsApp send error:', err.response ? JSON.stringify(err.response.data) : err.message);
+    throw err;
   }
 };
 

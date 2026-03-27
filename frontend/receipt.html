@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>Acknowledgement Slip - Gazi Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --fm: 'Inter', 'Tiro Bangla', sans-serif;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-soft: #64748b;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+    }
+    
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: var(--fm);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    
+    .receipt-container {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: 600px;
+      border: 1px solid var(--border);
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Watermark styling */
+    .receipt-container::before {
+      content: 'GAZI ONLINE';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 70px;
+      font-weight: 800;
+      color: rgba(56, 189, 248, 0.04);
+      z-index: 0;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px dashed var(--border);
+      padding-bottom: 25px;
+    }
+    
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+    
+    .logo span {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 10px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+    
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-size: 14px;
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+    
+    .value {
+      font-size: 15px;
+      color: var(--text);
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .highlight {
+      color: var(--primary-dark);
+      font-size: 18px;
+    }
+
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-soft);
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    .loader {
+      text-align: center;
+      padding: 40px;
+      font-size: 16px;
+      color: var(--text-soft);
+    }
+    
+    .error {
+      text-align: center;
+      padding: 40px;
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    /* Print styles */
+    @media print {
+      @page { margin: 0; size: A4; }
+      body { background: white; padding: 0; align-items: center; }
+      .receipt-container { box-shadow: none; border: none; max-width: 100%; border-radius: 0; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="receipt-container" id="container">
+    <div class="loader" id="loader">Fetching details... / তথ্য আনা হচ্ছে...</div>
+  </div>
+
+  <script>
+    const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1' 
+      ? 'http://localhost:5000' 
+      : 'https://ngazi-delta.vercel.app'; // match existing logic
+
+    const SERVICE_LABELS = {
+      'pvc': 'PVC কার্ড প্রিন্টিং',
+      'aadhaar-mobile': 'আধার মোবাইল আপডেট',
+      'aadhaar-address': 'আধার ঠিকানা আপডেট',
+      'aadhaar-photo': 'আধার ফটো আপডেট',
+      'aadhaar-biometric': 'আধার বায়োমেট্রিক',
+      'pan-new': 'প্যান কার্ড নতুন আবেদন',
+      'pan-correction': 'প্যান কার্ড সংশোধন',
+      'life-cert': 'লাইফ সার্টিফিকেট',
+      'form-fillup': 'অনলাইন ফর্ম ফিলআপ'
+    };
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const trackingId = params.get('id');
+      const container = document.getElementById('container');
+
+      if (!trackingId) {
+        container.innerHTML = '<div class="error">❌ No Tracking ID provided / ট্র্যাকিং আইডি পাওয়া যায়নি</div>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/tracking/${trackingId}`);
+        const data = await res.json();
+
+        if (!data.success) {
+          container.innerHTML = `<div class="error">❌ ${data.message}</div>`;
+          return;
+        }
+
+        const b = data.data;
+        const serviceName = SERVICE_LABELS[b.service] || b.service;
+        const dateObj = new Date(b.createdAt);
+        const submitDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+        
+        let apptHtml = '';
+        if(b.appointmentDate) {
+           const aDateObj = new Date(b.appointmentDate);
+           const aDate = `${String(aDateObj.getDate()).padStart(2, '0')}-${String(aDateObj.getMonth() + 1).padStart(2, '0')}-${aDateObj.getFullYear()}`;
+           apptHtml = `
+            <div class="row">
+              <div class="label">Appointment Date / অ্যাপয়েন্টমেন্ট তারিখ</div>
+              <div class="value">${aDate}</div>
+            </div>
+            <div class="row">
+              <div class="label">Appointment Time / সময়</div>
+              <div class="value">${b.appointmentTime || 'N/A'}</div>
+            </div>
+           `;
+        }
+
+        container.innerHTML = `
+          <div class="content-wrapper">
+            <div class="header">
+              <div class="logo">GAZI <span>ONLINE</span></div>
+              <div style="font-size: 14px; color: #64748b;">Digital Service Center</div>
+              <div class="title">Acknowledgement Slip</div>
+            </div>
+            
+            <div class="row">
+              <div class="label">Tracking ID / ট্র্যাকিং আইডি</div>
+              <div class="value highlight">${b.trackingId}</div>
+            </div>
+            
+            <div class="row">
+              <div class="label">Customer Name / নাম</div>
+              <div class="value">${b.name}</div>
+            </div>
+            
+            <div class="row">
+              <div class="label">Mobile / মোবাইল</div>
+              <div class="value">${b.phone}</div>
+            </div>
+            
+            <div class="row">
+              <div class="label">Service / সেবার বিবরণ</div>
+              <div class="value">${serviceName}</div>
+            </div>
+
+            ${apptHtml}
+            
+            <div class="row">
+              <div class="label">Payment Amount / টাকার পরিমাণ</div>
+              <div class="value">₹${b.payment?.amount || 0}</div>
+            </div>
+
+            <div class="row">
+              <div class="label">Submission Date / জমার তারিখ</div>
+              <div class="value">${submitDate}</div>
+            </div>
+
+            <div class="row" style="border-bottom: none;">
+              <div class="label">Current Status / বর্তমান স্ট্যাটাস</div>
+              <div class="value" style="color: #0284c7; text-transform: capitalize;">${b.status}</div>
+            </div>
+
+            <div class="footer">
+              <p>This is a computer generated slip. Keep your tracking ID safe for future reference.<br>এটি একটি কম্পিউটার জেনারেটেড স্লিপ। ভবিষ্যতের জন্য আপনার ট্র্যাকিং আইডি সংরক্ষণ করুন।</p>
+              <p style="margin-top:8px;"><strong>Thank you for choosing Gazi Online!</strong></p>
+            </div>
+          </div>
+        `;
+        
+        // Auto print prompt after render
+        setTimeout(() => {
+          document.title = \`Gazi_Online_Slip_\${b.trackingId}\`;
+          window.print();
+        }, 500);
+
+      } catch (err) {
+        container.innerHTML = `<div class="error">❌ System Error: ${err.message}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>
